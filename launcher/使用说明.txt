@@ -1,0 +1,42 @@
+小米平板 9 Pro Max (yingtian) 一键 Root 包
+ROM: OS4.0.16.0.XBMCNXM / Android 17 / kernel 6.18.21-android17-5-g805aa6adea19
+漏洞: CVE-2026-98260 (POSIX CPU timer UAF, 一次 UAF 三处写)
+
+【包内文件】
+01-AxManager-2.0.1.apk        插件宿主（开机以 shell 身份运行插件，是整条链的入口）
+02-yt-root-plugin.zip         Root 插件本体（提权 plant + KSU late-load + Zygisk/Vector 注入）
+03-KernelSU-v3.3.1.apk        KSU 管理器 v3.3.1 (32680)，与插件内置 ksud 3.3.1 匹配
+ytrl.sh                       启动器脚本（手动调试用，插件内已自带）
+
+【安装步骤】
+1. 安装 01-AxManager，打开一次并允许后台运行/自启动。
+2. 打开 AxManager → 模块/插件页 → 安装 02-yt-root-plugin.zip。
+   装完后插件列表里会出现「Root 启动器 (CVE-2026-98260)」。
+3. 安装 03-KernelSU-v3.3.1.apk。注意：不要用它「安装内核」——内核由插件负责 late-load。
+4. 重启平板。约 10 秒内自动完成：root → KSU 上线 → Zygisk 注入 → Vector 框架。
+
+【怎么确认成功】
+  状态:  cat /data/local/tmp/ytrl.status      -> {"state":"ready","detail":"ksu-online"}
+  日志:  tail /data/local/tmp/root.log
+  进程:  pidof zn-daemon vectord clash
+  框架:  /data/adb/modules/zygisk_vector/cli status  -> Framework Version: 2.2 / API 102
+
+【一键重试】
+  AxManager 里点插件动作（执行 action.sh）, 或:
+    su -c "sh /data/local/tmp/ytrl.sh force"      重新提权
+    su -c "sh /data/local/tmp/ytrl.sh modules"    补做 KSU/注入/框架
+    su -c "sh /data/local/tmp/ytrl.sh apps"       预热指定 App（默认空）
+
+【适用条件 / 不适用】
+  - 仅适用于上面这一版 ROM（内核符号、slab 布局、SELinux 策略都按它校准）。
+  - 其它机型/其它 ROM 不要用：预检会 blocked 并拒绝执行，不会硬崩。
+  - 需要 /sys/kernel/tracing 对 shell 可写（本 ROM 满足）。
+
+【已知边界】
+  - KSU 是 late-load：模块的「文件挂载」(mount:true) 不会发生。
+    Zygisk 型模块（Vector / LSPosed 系）可用；改 /system 文件的 Magisk 型模块不行。
+  - 每次开机需要重启一次系统框架（约 20 秒）来完成 Zygisk 注入，插件会自动做，用户无感。
+  - 注入失败的自救: su -c "rm -f /data/local/tmp/.ytrl.zygote.*; sh /data/local/tmp/ytrl.sh modules"
+  - Xposed 框架只能用 Vector（org.matrix.vector.manager）。原版 LSPosed 1.9.2 只支持到 Android 14，
+    在本 ROM 上会导致 system_server 反复重启，请勿启用 zygisk_lsposed。
+  - 开机默认静默（无通知、无弹窗）。要开通知: touch /data/local/tmp/ytrl.notify

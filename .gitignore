@@ -1,0 +1,20 @@
+# build outputs
+*.o
+*.elf
+*.apk
+*.zip
+*.dex
+plant/plant
+plant/uaf_v6
+plant/uaf_flip
+plant/uaf_ctl
+launcher/plant
+launcher/su98260
+launcher/ksud
+app/ghostfork/build/
+app/ghostfork/keystore.jks
+# local
+.DS_Store
+venv/
+zig-*/
+test-results/
