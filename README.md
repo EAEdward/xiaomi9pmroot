@@ -24,25 +24,23 @@
 - 提权后按名字顺序执行 `/data/local/tmp/yt-scripts/*.sh`，每个一次，以 root 身份
 - 全程静默：不弹窗、不发通知
 
-## 入口
+## 前提
 
-漏洞跑在 shell 身份下，所以需要一个 shell 环境，两个都行：
+漏洞跑在 shell 身份下，所以需要 [Shizuku](https://github.com/RikkaApps/Shizuku) 先起来（`shizuku_server`）。
 
-| 入口 | 怎么用 |
-|---|---|
-| AxManager | 装插件 zip，开机自启 |
-| Shizuku | `rish -c "sh /data/local/tmp/ytrl.sh start"` |
+AxManager 跑在 Shizuku 之上：它借 Shizuku 的 shell 起 `axeron_server`，再把插件拉起来。装它图的是开机自启；不装也能用，手动跑一条命令就行。
 
 ## 安装
 
-### AxManager（开机自动）
+### 装 AxManager（开机自动）
 
-1. 装 AxManager，打开一次
-2. AxManager → 插件页 → 安装 Release 里的 `xiaomi9pmroot-v1.0.zip`
-3. 装 Release 里的 `KernelSU-v3.3.1.apk`，不要点"安装内核"
-4. 重启
+1. 装 Shizuku，用 adb 或无线调试把服务启起来
+2. 装 AxManager，在 Shizuku 里授权给它，打开一次
+3. AxManager → 插件页 → 安装 Release 里的 `xiaomi9pmroot-v1.0.zip`
+4. 装 Release 里的 `KernelSU-v3.3.1.apk`，不要点"安装内核"
+5. 重启
 
-### Shizuku（手动）
+### 只装 Shizuku（手动）
 
 ```sh
 adb push plant su98260 ksud ytrl.sh /data/local/tmp/
