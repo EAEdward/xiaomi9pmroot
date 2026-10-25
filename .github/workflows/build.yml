@@ -5,37 +5,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "app/**"
       - "plant/**"
       - ".github/workflows/build.yml"
 
 jobs:
-  apk:
-    name: GhostRoot APK
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-      - name: Build APK (aapt2 + d8 + apksigner from the runner SDK)
-        run: |
-          set -eux
-          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
-          BT="$(ls -d "$SDK"/build-tools/* | sort -V | tail -1)"
-          PLAT="$(ls -d "$SDK"/platforms/android-3*/android.jar | sort -V | tail -1)"
-          echo "build-tools: $BT"
-          echo "platform:    $PLAT"
-          cd app/ghostfork
-          ANDROID_SDK="$SDK" BUILD_TOOLS="$BT" PLATFORM_JAR="$PLAT" bash ./build.sh
-          ls -la GhostRoot.apk
-      - uses: actions/upload-artifact@v4
-        with:
-          name: GhostRoot-apk
-          path: app/ghostfork/GhostRoot.apk
-          if-no-files-found: error
-
   payload:
     name: plant (aarch64 static)
     runs-on: ubuntu-latest
@@ -48,7 +21,7 @@ jobs:
           set -eux
           cd plant && make
           file plant
-          ls -la plant
+          sha256sum plant
       - uses: actions/upload-artifact@v4
         with:
           name: plant-aarch64
