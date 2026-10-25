@@ -65,6 +65,21 @@ cd plant && make            # 需要 zig
 # 或： zig cc -target aarch64-linux-musl -static -O2 -o plant uaf_plant_v6.c pc98260_rootd.c
 ```
 
+
+### GhostRoot APK
+
+`app/ghostfork/` 由 CI 构建（`.github/workflows/build.yml`）：`ubuntu-latest` 自带的 Android SDK，跑
+`aapt2 + javac + d8 + zipalign + apksigner`，产物在 Actions 的 `GhostRoot-apk` artifact 里，也挂在 Release 上。
+
+装的时候注意 MIUI/HyperOS 会拦 `adb install`（`INSTALL_FAILED_USER_RESTRICTED`）：
+
+```sh
+adb push GhostRoot.apk /data/local/tmp/
+adb shell "su -c 'pm install -r -g /data/local/tmp/GhostRoot.apk'"   # 有 root 时走这条
+```
+
+或者开发者选项里打开「USB 调试（安全设置）」/「通过 USB 安装」。
+
 `launcher/` 是纯 shell，无构建步骤。`app/ghostfork/` 是一个 Ghost 风格的前端工程（见其 README，需要 Android SDK build-tools）。
 
 ## 目录结构
