@@ -1,7 +1,7 @@
-id=yt-root-98260
-name=Root 启动器 (CVE-2026-98260)
-version=7.0
-versionCode=10
-author=local
-description=点图标一键 root（约 1 秒）/ 开机自动。一次 UAF 三处写，随后自动装 Zygisk 注入与 Vector 框架。日志 /data/local/tmp/root.log
+id=xiaomi9pmroot
+name=xiaomi9pmroot
+version=1.0
+versionCode=1
+author=EAEdward
+description=小米平板 9 Pro Max (yingtian) 一键 root：CVE-2026-98260 → rootd → KernelSU late-load → 执行 /data/local/tmp/yt-scripts/*.sh。仅 root，不涉及 Zygisk/LSPosed。
 axeronPlugin=20100

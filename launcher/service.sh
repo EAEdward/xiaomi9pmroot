@@ -1,13 +1,12 @@
 #!/system/bin/sh
-# AxManager plugin boot hook: self-heal the payload, then bring root up.
-# Runs as the shell uid; ytrl.sh re-execs itself under su once root exists.
+# AxManager plugin boot hook — sync the payload, then bring root up.
+# Runs as the shell uid; ytrl.sh escalates through the plant helper once root
+# exists, so nothing here needs to be root yet.
 LOG=/data/local/tmp/yt-plugin.log
 exec >>"$LOG" 2>&1
-echo "=== $(date) service.sh v5 uid=$(id -u) kernel=$(uname -r)"
+echo "=== $(date) service.sh xiaomi9pmroot uid=$(id -u) kernel=$(uname -r)"
 
 D=$(dirname "$0")
-# Sync every payload file by content: a panic can leave a file NUL-filled while
-# its size stays correct, and a stale binary silently keeps old behaviour.
 for f in plant su98260 ksud ytrl.sh; do
     [ -s "$D/$f" ] || continue
     if [ ! -s "/data/local/tmp/$f" ] || ! cmp -s "$D/$f" "/data/local/tmp/$f" 2>/dev/null; then
@@ -15,10 +14,8 @@ for f in plant su98260 ksud ytrl.sh; do
     fi
 done
 
-# A plant parked on the UAF page must never be killed: a live lock means another
-# run is already in charge.
-if [ -f /data/local/tmp/.ytrl.lock/pid ]; then
-    P=$(cat /data/local/tmp/.ytrl.lock/pid 2>/dev/null)
+if [ -f /data/local/tmp/.ytroot.lock/pid ]; then
+    P=$(cat /data/local/tmp/.ytroot.lock/pid 2>/dev/null)
     if [ -n "${P:-}" ] && kill -0 "$P" 2>/dev/null; then echo "skip: running pid=$P"; exit 0; fi
 fi
 

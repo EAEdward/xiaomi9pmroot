@@ -1,3 +1,3 @@
 #!/system/bin/sh
-# one tap -> force a fresh root attempt
+# One tap from AxManager (or a Shizuku shell): force a fresh root attempt.
 exec /system/bin/sh /data/local/tmp/ytrl.sh force
