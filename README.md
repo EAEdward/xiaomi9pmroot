@@ -2,6 +2,8 @@
 
 小米平板 9 Pro Max 的 root 工具。开机自动提权，把 KernelSU 装进内核，然后执行你自己的脚本。
 
+*One-tap root for Xiaomi Pad 9 Pro Max — boots rooted, loads KernelSU, then runs your scripts.*
+
 [![Release](https://img.shields.io/github/v/release/EAEdward/xiaomi9pmroot?label=Release&logo=github)](https://github.com/EAEdward/xiaomi9pmroot/releases/latest)
 [![License](https://img.shields.io/github/license/EAEdward/xiaomi9pmroot?logo=gnu)](LICENSE)
 
@@ -15,7 +17,7 @@
 
 内核符号、slab 布局、SELinux 策略都按这一版对齐。换系统或换机型，预检会拦下来。
 
-## 它做什么
+## 功能
 
 - 开机自动 root，冷启动 1–5 秒能用 `su`
 - 自动 `ksud late-load`，KernelSU 管理器直接可用
@@ -94,7 +96,11 @@ cd launcher && zip -X xiaomi9pmroot-v1.0.zip module.prop service.sh action.sh yt
 
 提权走的是 `CVE-2026-98260`：`begin_new_exec()` 里 `de_thread()` 先 `release_task()`，之后才清 POSIX CPU timer；`exec_mmap` 被打断时计时器对象已经释放，而 rb-tree 还挂着它们。等父进程 reap，内核就会拿我们铺好的 `rb_node` 做 `rb_erase`。一次调用排空三棵树，三个时钟各挂一个 timer，一次回收换三次写。细节在 [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)。
 
-KernelSU 是 late-load，每次开机重新装一次，这是它的代价。
+KernelSU 是 late-load，每次开机重新装一次，这是 late-load 的固有开销。
+
+## 致谢
+
+[KernelSU](https://github.com/tiann/KernelSU)、[AxManager](https://github.com/frb-axeron/AxManager)、[Shizuku](https://github.com/RikkaApps/Shizuku)、[zig](https://ziglang.org)。
 
 ## 许可
 
