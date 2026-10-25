@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -26,8 +27,10 @@ import java.io.RandomAccessFile;
  *
  * Channel: /sdcard/Android/data/dev.yt.ghostroot/files/
  *   ytrl.status  (written by the root side, read here)
- *   ytrl.cmd     (written here: start | modules | apps | reboot)
- *   ytrl.log     (tail of the launcher log, optional)
+ *   ytrl.cmd     (written here: start | modules | apps)
+ *
+ * Deliberately lambda-free: d8 would otherwise need invokedynamic desugaring,
+ * which a plain aapt2 + d8 build cannot do from the platform jar alone.
  */
 public class MainActivity extends Activity {
     private static final String DIR = "/sdcard/Android/data/dev.yt.ghostroot/files";
@@ -56,15 +59,15 @@ public class MainActivity extends Activity {
         root.addView(sub);
 
         status = new TextView(this);
-        status.setText("正在读取状态\u2026");
+        status.setText("\u6b63\u5728\u8bfb\u53d6\u72b6\u6001...");
         status.setTextColor(Color.parseColor("#9EE6A1"));
         status.setTextSize(16);
         status.setPadding(0, 48, 0, 32);
         root.addView(status);
 
-        root.addView(button("一键获取 Root", "start"));
-        root.addView(button("修复框架 / 注入 Xposed", "modules"));
-        root.addView(button("刷新状态", null));
+        root.addView(button("\u4e00\u952e\u83b7\u53d6 Root", "start"));
+        root.addView(button("\u4fee\u590d\u6846\u67b6 / \u6ce8\u5165 Xposed", "modules"));
+        root.addView(button("\u5237\u65b0\u72b6\u6001", null));
 
         ScrollView sc = new ScrollView(this);
         sc.addView(root);
@@ -77,13 +80,16 @@ public class MainActivity extends Activity {
         btn.setText(label);
         btn.setTextSize(18);
         btn.setGravity(Gravity.CENTER);
-        btn.setOnClickListener(v -> {
-            if (cmd == null) {
-                render();
-                return;
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (cmd == null) {
+                    render();
+                    return;
+                }
+                write("ytrl.cmd", cmd + "\n");
+                status.setText("\u5df2\u63d0\u4ea4: " + cmd + "...");
             }
-            write("ytrl.cmd", cmd + "\n");
-            status.setText("已提交: " + cmd + "\u2026");
         });
         return btn;
     }
@@ -100,17 +106,13 @@ public class MainActivity extends Activity {
         String s = read("ytrl.status");
         String m = read("ytrl.modules");
         StringBuilder sb = new StringBuilder();
-        sb.append(s.isEmpty() ? "状态: 无（root 尚未启动）" : s.trim());
+        sb.append(s.length() == 0 ? "\u72b6\u6001: \u65e0\uff08root \u5c1a\u672a\u542f\u52a8\uff09" : s.trim());
         sb.append("\n");
-        if (!m.isEmpty()) {
+        if (m.length() > 0) {
             sb.append(m.trim());
         }
         status.setText(sb.toString());
-        faviconDot(s.contains("\"ready\""));
-    }
-
-    private void faviconDot(boolean ok) {
-        status.setTextColor(Color.parseColor(ok ? "#9EE6A1" : "#E6B85C"));
+        status.setTextColor(Color.parseColor(s.contains("\"ready\"") ? "#9EE6A1" : "#E6B85C"));
     }
 
     private String read(String name) {
@@ -118,10 +120,15 @@ public class MainActivity extends Activity {
         if (!f.exists()) {
             return "";
         }
-        try (RandomAccessFile raf = new RandomAccessFile(f, "r")) {
-            byte[] buf = new byte[(int) Math.min(raf.length(), 4096)];
-            raf.readFully(buf);
-            return new String(buf, "UTF-8");
+        try {
+            RandomAccessFile raf = new RandomAccessFile(f, "r");
+            try {
+                byte[] buf = new byte[(int) Math.min(raf.length(), 4096)];
+                raf.readFully(buf);
+                return new String(buf, "UTF-8");
+            } finally {
+                raf.close();
+            }
         } catch (IOException e) {
             return "";
         }
@@ -129,8 +136,13 @@ public class MainActivity extends Activity {
 
     private void write(String name, String text) {
         File f = new File(DIR, name);
-        try (FileWriter w = new FileWriter(f, false)) {
-            w.write(text);
+        try {
+            FileWriter w = new FileWriter(f, false);
+            try {
+                w.write(text);
+            } finally {
+                w.close();
+            }
         } catch (IOException ignored) {
         }
     }
